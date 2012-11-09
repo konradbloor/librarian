@@ -1,0 +1,64 @@
+#!/usr/bin/env ruby
+require 'optparse'
+
+options = {}
+
+opt_parser = OptionParser.new do |opt|
+  opt.banner = "Usage: librarian COMMAND [OPTIONS]"
+  opt.separator  ""
+  opt.separator  "Commands"
+  opt.separator  "     new: create a new type of document (remember to amend configuration file)"
+  opt.separator  "     train: train documents for a specific type of document"
+  opt.separator  "     deliver: deliver a document to the librarian"
+  opt.separator  ""
+  opt.separator  "Options"
+  opt.separator  ""
+
+  opt.on("-t","--type DOCUMENTTYPE","document type to create or train") do |documenttype|
+    options[:documenttype] = documenttype
+  end
+
+  opt.on("-f","--file FILE","file to train or deliver") do |actfile|
+    options[:actfile] = actfile
+  end
+
+  opt.on("-d","--daemon","runing on daemon mode? delete") do
+    options[:daemon] = true
+  end
+
+  opt.on("-h","--help","help") do
+    puts opt_parser
+  end
+
+  opt.on("-e","--environment ENVIRONMENT delete",Numeric,
+         "which environment you want server run") do |environment|
+    options[:environment] = environment
+  end
+
+  opt.on("--delay N", Float, "Delay N seconds before executing delete") do |n|
+    options[:delay] = n
+  end
+
+  opt.separator  ""
+  opt.separator  "Examples"
+  opt.separator  "     librarian new -t bankstatements"
+  opt.separator  "     librarian train -t bankstatements -d /users/me/Documents/Scans/samplebankstatement.pdf"
+  opt.separator  "     librarian train -t bankstatements -d /users/me/Documents/Scans/statements"
+  opt.separator  "     librarian deliver -d /users/me/Documents/Scans"
+  opt.separator  "     librarian deliver -d /users/me/Documents/Scans/321232423.pdf"
+
+end
+
+opt_parser.parse!
+
+case ARGV[0]
+  when "new"
+    puts "new with options #{options.inspect}"
+  when "train"
+    puts "train with options #{options.inspect}"
+  when "deliver"
+    puts "deliver with options #{options.inspect}"
+  else
+    puts opt_parser
+end
+
