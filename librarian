@@ -53,12 +53,16 @@ opt_parser.parse!
 
 case ARGV[0]
   when "new"
-    puts "new with options #{options.inspect}"
+    newtype(options[:documenttype])
   when "train"
     puts "train with options #{options.inspect}"
   when "deliver"
     puts "deliver with options #{options.inspect}"
   else
     puts opt_parser
+end
+
+def newtype(documentType)
+  puts "Document type is #{documentType}"
 end
 
