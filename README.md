@@ -79,6 +79,10 @@ Install
 
 
 
+Caveats
+-------
 
-
+I've written this from the perspective of someone that has been slinging Java (since 1998...), so no doubt this code will
+exhibit some smell of Java and not be quite idiomatic Ruby.  I will have missed tricks as it is the first Ruby code
+I've written outside of puppet configuration.
 
