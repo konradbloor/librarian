@@ -1,5 +1,10 @@
 #!/usr/bin/env ruby
 require 'optparse'
+require 'rubygems'
+require 'nbayes'
+require File.dirname(__FILE__) + '/Type.rb'
+require File.dirname(__FILE__) + '/TypeRepository.rb'
+require File.dirname(__FILE__) + '/SpotlightImportingWordExtractor.rb'
 
 options = {}
 
@@ -42,27 +47,50 @@ opt_parser = OptionParser.new do |opt|
   opt.separator  ""
   opt.separator  "Examples"
   opt.separator  "     librarian new -t bankstatements"
-  opt.separator  "     librarian train -t bankstatements -d /users/me/Documents/Scans/samplebankstatement.pdf"
-  opt.separator  "     librarian train -t bankstatements -d /users/me/Documents/Scans/statements"
-  opt.separator  "     librarian deliver -d /users/me/Documents/Scans"
-  opt.separator  "     librarian deliver -d /users/me/Documents/Scans/321232423.pdf"
+  opt.separator  "     librarian train -t bankstatements -f /users/me/Documents/Scans/samplebankstatement.pdf"
+  opt.separator  "     librarian train -t bankstatements -f /users/me/Documents/Scans/statements"
+  opt.separator  "     librarian deliver -f /users/me/Documents/Scans"
+  opt.separator  "     librarian deliver -f /users/me/Documents/Scans/321232423.pdf"
 
 end
 
 opt_parser.parse!
 
+def newtype(documentType)
+  puts "Add new document type #{documentType}"
+  type = Type.new(documentType)
+  type.addField("examplefield","exampleregex")
+  typeRepository = TypeRepository.new
+  typeRepository.add(type)
+  puts "Don't forget to modify the regular expressions in the data file"
+end
+
+def train(documentType, file)
+  puts "Train #{file} as an instance of a #{documentType}"
+  words = SpotlightImportingWordExtractor.new(file).extractedWords
+  bayesfilename = "bayesdata.librarian"
+  nbayes = NBayes::Base.new
+  if File.exists?(bayesfilename)
+    nbayes = NBayes::Base.from(bayesfilename)
+  end
+  nbayes.train(words.split(' '),documentType)
+  nbayes.dump(bayesfilename)
+end
+
+def deliver(file)
+  puts "Received #{file} to classify and rename"
+end
+
 case ARGV[0]
   when "new"
     newtype(options[:documenttype])
   when "train"
-    puts "train with options #{options.inspect}"
+    train(options[:documenttype],options[:actfile])
   when "deliver"
-    puts "deliver with options #{options.inspect}"
+    deliver(options[:actfile])
   else
     puts opt_parser
 end
 
-def newtype(documentType)
-  puts "Document type is #{documentType}"
-end
+
 
