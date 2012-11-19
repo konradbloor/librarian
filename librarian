@@ -79,6 +79,16 @@ end
 
 def deliver(file)
   puts "Received #{file} to classify and rename"
+  bayesfilename = "bayesdata.librarian"
+  nbayes = NBayes::Base.new
+  if File.exists?(bayesfilename)
+    nbayes = NBayes::Base.from(bayesfilename)
+  end
+  words = SpotlightImportingWordExtractor.new(file).extractedWords
+  result = nbayes.classify(words.split(' '))
+  candidatetype = result.max_class
+  candidateprobability = result[candidatetype]
+  puts "Believe it is a #{candidatetype} with probability #{candidateprobability}"
 end
 
 case ARGV[0]
