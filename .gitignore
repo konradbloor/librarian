@@ -20,4 +20,4 @@ Thumbs.db
 # Test data #
 ######################
 *.pdf
-*.librarian
+*.librarian*
