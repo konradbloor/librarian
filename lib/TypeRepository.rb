@@ -18,6 +18,10 @@ class TypeRepository
     dump(@file)
   end
 
+  def get(typename)
+    @types.find { |t| t.name == typename }
+  end
+
   def from(yml_file)
     @types = YAML.load_file(yml_file)
   end

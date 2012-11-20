@@ -1,10 +1,10 @@
 #!/usr/bin/env ruby
 require 'optparse'
-require 'rubygems'
-require 'nbayes'
-require File.dirname(__FILE__) + '/Type.rb'
-require File.dirname(__FILE__) + '/TypeRepository.rb'
-require File.dirname(__FILE__) + '/SpotlightImportingWordExtractor.rb'
+
+$LOAD_PATH << File.dirname(__FILE__)+'/../lib'
+require 'Type.rb'
+require 'TypeRepository.rb'
+require 'Classifier.rb'
 
 options = {}
 
@@ -59,36 +59,33 @@ opt_parser.parse!
 def newtype(documentType)
   puts "Add new document type #{documentType}"
   type = Type.new(documentType)
+  type.setDestination(".")
   type.addField("examplefield","exampleregex")
   typeRepository = TypeRepository.new
   typeRepository.add(type)
   puts "Don't forget to modify the regular expressions in the data file"
 end
 
-def train(documentType, file)
-  puts "Train #{file} as an instance of a #{documentType}"
-  words = SpotlightImportingWordExtractor.new(file).extractedWords
-  bayesfilename = "bayesdata.librarian"
-  nbayes = NBayes::Base.new
-  if File.exists?(bayesfilename)
-    nbayes = NBayes::Base.from(bayesfilename)
-  end
-  nbayes.train(words.split(' '),documentType)
-  nbayes.dump(bayesfilename)
+def train(documentType, filename)
+  typeRepository = TypeRepository.new
+  type = typeRepository.get(documentType)
+  if type.nil? 
+    puts "I don't know what type #{documentType} is."
+  else
+    typeClassifier = Classifier.new("type");
+    typeClassifier.train(documentType, filename);
+  end 
 end
 
-def deliver(file)
-  puts "Received #{file} to classify and rename"
-  bayesfilename = "bayesdata.librarian"
-  nbayes = NBayes::Base.new
-  if File.exists?(bayesfilename)
-    nbayes = NBayes::Base.from(bayesfilename)
-  end
-  words = SpotlightImportingWordExtractor.new(file).extractedWords
-  result = nbayes.classify(words.split(' '))
-  candidatetype = result.max_class
-  candidateprobability = result[candidatetype]
-  puts "Believe it is a #{candidatetype} with probability #{candidateprobability}"
+def deliver(filename)
+  typeClassifier = Classifier.new("type");
+  category = typeClassifier.classify(filename);
+
+  typeRepository = TypeRepository.new
+  type = typeRepository.get(category)
+  
+  puts "#{filename} is a #{category}, should be moved to #{type.destination}"
+
 end
 
 case ARGV[0]
