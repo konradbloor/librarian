@@ -5,6 +5,7 @@ $LOAD_PATH << File.dirname(__FILE__)+'/../lib'
 require 'Type.rb'
 require 'TypeRepository.rb'
 require 'Classifier.rb'
+require 'SpotlightImportingWordExtractor.rb'
 
 options = {}
 
@@ -15,6 +16,7 @@ opt_parser = OptionParser.new do |opt|
   opt.separator  "     new: create a new type of document (remember to amend configuration file)"
   opt.separator  "     train: train documents for a specific type of document"
   opt.separator  "     deliver: deliver a document to the librarian"
+  opt.separator  "     peek: see the words librarian looks at to classify/extract fields/rename"
   opt.separator  ""
   opt.separator  "Options"
   opt.separator  ""
@@ -51,6 +53,7 @@ opt_parser = OptionParser.new do |opt|
   opt.separator  "     librarian train -t bankstatements -f /users/me/Documents/Scans/statements"
   opt.separator  "     librarian deliver -f /users/me/Documents/Scans"
   opt.separator  "     librarian deliver -f /users/me/Documents/Scans/321232423.pdf"
+  opt.separator  "     librarian words -f /users/me/Documents/Scans/321232423.pdf"
 
 end
 
@@ -60,7 +63,7 @@ def newtype(documentType)
   puts "Add new document type #{documentType}"
   type = Type.new(documentType)
   type.setDestination(".")
-  type.addField("examplefield","exampleregex")
+  type.addField("examplefield","\\s(\\d{8})\\s")
   typeRepository = TypeRepository.new
   typeRepository.add(type)
   puts "Don't forget to modify the regular expressions in the data file"
@@ -78,14 +81,30 @@ def train(documentType, filename)
 end
 
 def deliver(filename)
-  typeClassifier = Classifier.new("type");
-  category = typeClassifier.classify(filename);
 
-  typeRepository = TypeRepository.new
-  type = typeRepository.get(category)
+  if(File.directory?(filename)) 
+    files = Dir.glob("*.pdf")
+    files.each { |f| deliver(f) }
+  end
+
+  if File.fnmatch("*.pdf",filename)
+
+    typeClassifier = Classifier.new("type");
+    category = typeClassifier.classify(filename);
+
+    typeRepository = TypeRepository.new
+    type = typeRepository.get(category)
   
-  puts "#{filename} is a #{category}, should be moved to #{type.destination}"
+    extractedwords = SpotlightImportingWordExtractor.new(filename).extractedWords
+    fields = type.getFields(category, filename, extractedwords)
+    puts "#{filename} : #{fields}"
 
+  end
+end
+
+def words(filename)
+  extractedwords = SpotlightImportingWordExtractor.new(filename).extractedWords
+  puts "#{extractedwords}"
 end
 
 case ARGV[0]
@@ -95,6 +114,8 @@ case ARGV[0]
     train(options[:documenttype],options[:actfile])
   when "deliver"
     deliver(options[:actfile])
+  when "words"
+    words(options[:actfile])
   else
     puts opt_parser
 end
