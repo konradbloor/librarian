@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 require 'optparse'
+require 'fileutils'
 
 $LOAD_PATH << File.dirname(__FILE__)+'/../lib'
 require 'Type.rb'
@@ -51,8 +52,9 @@ opt_parser = OptionParser.new do |opt|
   opt.separator  "     librarian new -t bankstatements"
   opt.separator  "     librarian train -t bankstatements -f /users/me/Documents/Scans/samplebankstatement.pdf"
   opt.separator  "     librarian train -t bankstatements -f /users/me/Documents/Scans/statements"
-  opt.separator  "     librarian deliver -f /users/me/Documents/Scans"
-  opt.separator  "     librarian deliver -f /users/me/Documents/Scans/321232423.pdf"
+  opt.separator  "     librarian list -f /users/me/Documents/Scans"
+  opt.separator  "     librarian move -f /users/me/Documents/Scans"
+  opt.separator  "     librarian copy -f /users/me/Documents/Scans"
   opt.separator  "     librarian words -f /users/me/Documents/Scans/321232423.pdf"
 
 end
@@ -69,6 +71,15 @@ def newtype(documentType)
   puts "Don't forget to modify the regular expressions in the data file"
 end
 
+def listtypes()
+  puts "Types of document:"
+  typeRepository = TypeRepository.new
+  types = typeRepository.types
+  types.each do | type |
+      puts "\t"+type.name+", directory "+type.destination
+  end
+end
+
 def train(documentType, filename)
   typeRepository = TypeRepository.new
   type = typeRepository.get(documentType)
@@ -80,11 +91,11 @@ def train(documentType, filename)
   end 
 end
 
-def deliver(filename)
+def process(filename, action)
 
   if(File.directory?(filename)) 
     files = Dir.glob("*.pdf")
-    files.each { |f| deliver(f) }
+    files.each { |f| process(f, action) }
   end
 
   if File.fnmatch("*.pdf",filename)
@@ -97,8 +108,19 @@ def deliver(filename)
   
     extractedwords = SpotlightImportingWordExtractor.new(filename).extractedWords
     fields = type.getFields(category, filename, extractedwords)
-    puts "#{filename} : #{fields}"
-
+    newfilename = type.getNewFilename(fields)
+    complete = type.hasExtractedAllFields(fields)
+    puts "#{filename} : #{fields} -> #{newfilename} (#{complete})"
+    if(complete)
+      FileUtils.mkdir_p(type.destination);
+      if action == :move 
+        FileUtils.move(filename, type.destination+"/"+newfilename)
+      end
+      if action == :copy
+        FileUtils.cp(filename, type.destination+"/"+newfilename)
+      end      
+    end
+  
   end
 end
 
@@ -110,10 +132,16 @@ end
 case ARGV[0]
   when "new"
     newtype(options[:documenttype])
+  when "types"
+    listtypes()
   when "train"
     train(options[:documenttype],options[:actfile])
-  when "deliver"
-    deliver(options[:actfile])
+  when "move"
+    process(options[:actfile], :move)
+  when "copy"
+    process(options[:actfile], :copy)
+  when "list"
+    process(options[:actfile], :list)
   when "words"
     words(options[:actfile])
   else

@@ -12,6 +12,10 @@ class TypeRepository
     @types = from(@file)
   end
 
+  def types
+    @types
+  end
+
   def add(newtype)
     @types.push(newtype)
     puts "Types now has #{@types.length} elements"

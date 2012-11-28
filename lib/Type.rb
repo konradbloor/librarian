@@ -4,6 +4,7 @@ class Type
     @name = classifierName
     @fields = Hash.new
     @destination = "."
+    @filename = "%%filename%%%%fileext%%"
   end
 
   def name
@@ -35,6 +36,26 @@ class Type
       }
     end
     fieldcontents
+  end
+
+  def hasExtractedAllFields(extractedfields)
+    return (@fields.length+3 == extractedfields.length)
+  end
+
+  def getNewFilename(extractedfields)
+    newfilename = String.new(@filename)
+
+    # replace all extracted fields
+    extractedfields.each do | fieldname, contents |
+      newfilename = newfilename.gsub("\%\%"+fieldname+"\%\%",contents);
+    end 
+
+    # replace any existing fields 
+    @fields.each do | fieldname, contents |
+      newfilename = newfilename.gsub("\%\%"+fieldname+"\%\%",fieldname);
+    end 
+
+    newfilename   
   end
 
 end
