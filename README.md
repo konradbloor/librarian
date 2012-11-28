@@ -54,7 +54,6 @@ Features
   This is not a feature that will draw the gasp of alumni of MIT, Caltech, Stanford, Oxford, Cambridge etc but it is
   damn useful when scanning.
 
-
 Usage
 -----
 
@@ -64,18 +63,19 @@ To use librarian, there are three things you must do first
 2. Add a document type to librarian - for example 'bank statement', 'invoice from supplier X', etc
 2. Train librarian for that new type of document
 3. Tell librarian what to do for each new type of document (i.e. where to move it, what to extract from it, what to
-rename it to).
+rename it to) through editing a configuration file
+4. Run it on your documents to see what it would do, to copy the files, or move the files
 
 
 Install
 -------
 
 1. Clone this repo
-2. Install oasic's [Naive Bayes ruby gem](https://github.com/oasic/nbayes) (thanks Oasic!) using
+2. Ensure you've got Ruby 1.9 as the ability to set/get default_proc is in Ruby 1.9 and that's required by the gem you are just about to install.  I used RBENV to do this.
+3. Install oasic's [Naive Bayes ruby gem](https://github.com/oasic/nbayes) (thanks Oasic!) using
 
 
     gem install nbayes
-
 
 
 
