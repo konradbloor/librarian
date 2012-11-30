@@ -23,15 +23,22 @@ class Type
     @destination
   end
 
+  def getNameLength
+    @name.length
+  end
+
+  def getDestinationLength
+    @destination.length
+  end
+
   def getFields(category, filename,filecontents)
     fieldcontents = Hash.new
     fieldcontents["category"] = category
     fieldcontents["filename"] = filename.slice(0,filename.rindex(File.extname(filename)))
     fieldcontents["fileext"] = File.extname(filename)
 
-    @fields.each do | fieldname,  regex |
-      regexToEvaluate = Regexp.new(regex)
-      regexToEvaluate.match(filecontents) { |m|
+    @fields.each do | fieldname,  regexfield |
+      regexfield.regex.match(filecontents) { |m|
         fieldcontents[fieldname] = m[1]
       }
     end
@@ -47,7 +54,7 @@ class Type
 
     # replace all extracted fields
     extractedfields.each do | fieldname, contents |
-      newfilename = newfilename.gsub("\%\%"+fieldname+"\%\%",contents);
+      newfilename = newfilename.gsub("\%\%"+fieldname+"\%\%",getFormattedField(fieldname, contents));
     end 
 
     # replace any existing fields 
@@ -56,6 +63,14 @@ class Type
     end 
 
     newfilename   
+  end
+
+  def getFormattedField(fieldname, contents)
+    result = contents;
+    if @fields.has_key?fieldname
+      result = @fields[fieldname].formatValue(contents)
+    end
+    result
   end
 
 end

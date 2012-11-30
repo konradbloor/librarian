@@ -16,6 +16,24 @@ class TypeRepository
     @types
   end
 
+  def maximumNameLength
+    maximumLength("getNameLength")
+  end
+
+  def maximumDestinationLength
+    maximumLength("getDestinationLength")
+  end
+
+  def maximumLength(method)
+    maximumLength = 0
+    @types.each do | type |
+      if type.getDestinationLength > maximumLength
+        maximumLength = type.send(method)
+      end
+    end
+    maximumLength
+  end
+
   def add(newtype)
     @types.push(newtype)
     puts "Types now has #{@types.length} elements"

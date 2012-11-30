@@ -7,6 +7,7 @@ require 'Type.rb'
 require 'TypeRepository.rb'
 require 'Classifier.rb'
 require 'SpotlightImportingWordExtractor.rb'
+require 'RegexField.rb'
 
 options = {}
 
@@ -14,10 +15,14 @@ opt_parser = OptionParser.new do |opt|
   opt.banner = "Usage: librarian COMMAND [OPTIONS]"
   opt.separator  ""
   opt.separator  "Commands"
+  opt.separator  ""
   opt.separator  "     new: create a new type of document (remember to amend configuration file)"
+  opt.separator  "     types: list document types in configuration file"
   opt.separator  "     train: train documents for a specific type of document"
-  opt.separator  "     deliver: deliver a document to the librarian"
-  opt.separator  "     peek: see the words librarian looks at to classify/extract fields/rename"
+  opt.separator  "     list: see what librarian would do with the given file or directory"
+  opt.separator  "     words: see the words librarian looks at to classify/extract fields/rename"
+  opt.separator  "     move: move all files that have all fields correctly filled in to destinations"
+  opt.separator  "     copy: copy all files that have all fields correctly filled in to destinations"
   opt.separator  ""
   opt.separator  "Options"
   opt.separator  ""
@@ -38,17 +43,9 @@ opt_parser = OptionParser.new do |opt|
     puts opt_parser
   end
 
-  opt.on("-e","--environment ENVIRONMENT delete",Numeric,
-         "which environment you want server run") do |environment|
-    options[:environment] = environment
-  end
-
-  opt.on("--delay N", Float, "Delay N seconds before executing delete") do |n|
-    options[:delay] = n
-  end
-
   opt.separator  ""
   opt.separator  "Examples"
+  opt.separator  ""
   opt.separator  "     librarian new -t bankstatements"
   opt.separator  "     librarian train -t bankstatements -f /users/me/Documents/Scans/samplebankstatement.pdf"
   opt.separator  "     librarian train -t bankstatements -f /users/me/Documents/Scans/statements"
@@ -62,27 +59,36 @@ end
 opt_parser.parse!
 
 def newtype(documentType)
-  puts "Add new document type #{documentType}"
-  type = Type.new(documentType)
-  type.setDestination(".")
-  type.addField("examplefield","\\s(\\d{8})\\s")
-  typeRepository = TypeRepository.new
-  typeRepository.add(type)
-  puts "Don't forget to modify the regular expressions in the data file"
+  type = TypeRepository.new.get(documentType)
+  if type.nil?
+    puts "Add new document type #{documentType}"
+    type = Type.new(documentType)
+    type.setDestination(".")
+    type.addField("examplefield",RegexField.new("\\s(\\d{8})\\s"))
+    typeRepository = TypeRepository.new
+    typeRepository.add(type)
+    puts "Don't forget to modify the regular expressions in the data file"
+  else
+    puts "You already have a type called #{documentType}"
+  end
+  listtypes()
 end
 
 def listtypes()
-  puts "Types of document:"
-  typeRepository = TypeRepository.new
-  types = typeRepository.types
-  types.each do | type |
-      puts "\t"+type.name+", directory "+type.destination
+  typeRepository = TypeRepository.new 
+  format = "\t%#{typeRepository.maximumNameLength}s  %-#{typeRepository.maximumDestinationLength}s"
+
+  puts ""
+  puts format % [ "Type", "Destination"]
+  puts format % [ "-"*typeRepository.maximumNameLength, "-"*typeRepository.maximumDestinationLength]
+  typeRepository.types.each do | type |
+    puts format % [ type.name, type.destination]
   end
+  puts ""
 end
 
 def train(documentType, filename)
-  typeRepository = TypeRepository.new
-  type = typeRepository.get(documentType)
+  type = TypeRepository.new.get(documentType)
   if type.nil? 
     puts "I don't know what type #{documentType} is."
   else
@@ -92,6 +98,9 @@ def train(documentType, filename)
 end
 
 def process(filename, action)
+
+  typeRepository = TypeRepository.new
+  format = "\t%#{typeRepository.maximumNameLength}s  %1s  %s --> %s"
 
   if(File.directory?(filename)) 
     files = Dir.glob("*.pdf")
@@ -103,14 +112,15 @@ def process(filename, action)
     typeClassifier = Classifier.new("type");
     category = typeClassifier.classify(filename);
 
-    typeRepository = TypeRepository.new
     type = typeRepository.get(category)
   
     extractedwords = SpotlightImportingWordExtractor.new(filename).extractedWords
     fields = type.getFields(category, filename, extractedwords)
     newfilename = type.getNewFilename(fields)
     complete = type.hasExtractedAllFields(fields)
-    puts "#{filename} : #{fields} -> #{newfilename} (#{complete})"
+
+    puts format % [ fields["category"], complete ? "" : "X", filename, newfilename]
+
     if(complete)
       FileUtils.mkdir_p(type.destination);
       if action == :move 
