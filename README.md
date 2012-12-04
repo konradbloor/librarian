@@ -18,7 +18,7 @@ I know what they are.
 
 So the creation of this gives me three main benefits:
 
-* I learn some Ruby basics which help me widen my outlook and make me more fluent in using Puppet.  Interesting to use Ruby.  Feels like a better more logically laid out Perl, nice and terse.  More freedom than Java and thus more responsibility.  I can see why it has taken off.
+* I learn some Ruby basics which help me widen my outlook and make me more fluent in using Puppet.  Interesting to use Ruby.  Feels like a better more logically laid out Perl, nice and terse.  More freedom than Java and thus more responsibility.  I can see why it has taken off.  Next time I need to mess around in a non OO language.
 * I save many hours of moving and renaming files into directories when scanning.
 * I rid my house of so much paper I can remove a bookcase so there's more space.
 
