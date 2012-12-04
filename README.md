@@ -127,5 +127,5 @@ Caveats
 
 I've written this from the perspective of someone that has been slinging Java (since 1998...), so no doubt this code will
 exhibit some smell of Java and not be quite idiomatic Ruby.  I will have missed tricks as it is the first Ruby code
-I've written outside of puppet configuration.
+I've written outside of puppet configuration.  I didn't get into rspec/rake/rdoc.  I was exploring and playing.  I may add rspec tests later and a rake script to coordinate it all but I was playing and didn't feel like it.
 
