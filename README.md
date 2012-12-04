@@ -57,15 +57,59 @@ Features
 Usage
 -----
 
-To use librarian, there are three things you must do first
+Here's an example way to use librarian.
 
 1. Install
-2. Add a document type to librarian - for example 'bank statement', 'invoice from supplier X', etc
-2. Train librarian for that new type of document
-3. Tell librarian what to do for each new type of document (i.e. where to move it, what to extract from it, what to
-rename it to) through editing a configuration file
-4. Run it on your documents to see what it would do, to copy the files, or move the files
+2. Scan a bunch of PDF files with Scansnap
+3. Train librarian.  You can do this by running 
 
+    librarian train -f [dirname] 
+
+  where [dirname] is where you have all your scanned PDF's.  It will then ask you what each type of document is from a list.  If you have a new type of document that librarian hasn't encountered (and to start with it has encountered no documents) you can name it here, and it will be added to the list.  
+
+4. Edit the configuration file.  This is where you can set, for each type of document, where you want it go, and how it should be named.
+5. Try a test run where it copies all the files it can
+
+    librarian copy -f [dirname]
+
+  This will also output a summary showing 'x' marks where it couldn't get complete data and so didn't copy the files.
+
+
+Configuration file
+------------------
+
+Librarian builds a file called 'documenttypes.librarian' in which it stores the following information on each type:
+
+- name
+- destination directory (i.e. where to copy or move the files to)
+- how the filename is constructed from fields (you get two free fields from the filename - for example 'test.pdf' gives you the field values 'test' in field 'filename', and '.pdf' in 'fileext'.)  Each field needs to have %% before and after it to be recognised properly.
+- the fields
+  - name
+  - regular expression to extract them from the file contents
+  - format string for when it is placed in the filename (say for date formatting or 0-padding)
+
+When you first create types though, none of the information on the directory, filename, or the fields is useful.  Because this is just a personal tool, I thought I'd prefer to just edit the file rather than build a UI or set of command line tools to modify the file.
+
+An example entry for a document type could be the following, and the whole file is simply differing versions of the below, repeated:
+
+    - !ruby/object:Type
+      name: Bank statement page
+      fields:
+        account: !ruby/object:RegexField
+          regex: \s(\d{8})\s
+          format: ! '%s'
+        page: !ruby/object:RegexField
+          regex: \s\(\D*(\d+)\D*\)\s*\w
+          format: ! '%04d'
+      destination: statementdir
+      filename: ! '%%account%%-%%page%%%%fileext%%'
+
+This example shows the following:
+
+- Name is 'Bank statement page'
+- Destination is the directory 'statementdir'
+- There are two fields, 'account' which is found by looking in the OCR'd text for eight digits with space around them, and page, which is found by looking for at least one digit, possibly surrounded by things that aren't digits, starting with some whitespace and ending with possibly some whitespace before a word character.  The page is 0 padded and 4 digits long.
+- The filename should take the fields so that if the original file was called test.pdf, and librarian found account was 12345678 and the page was 5, the filename would 12345678-0005.pdf
 
 Install
 -------
@@ -76,7 +120,6 @@ Install
 
 
     gem install nbayes
-
 
 
 Caveats
