@@ -36,7 +36,7 @@ class TypeRepository
 
   def add(newtype)
     @types.push(newtype)
-    puts "Types now has #{@types.length} elements"
+    puts "#{newtype.name} added.  There are now #{@types.length} types."
     dump(@file)
   end
 

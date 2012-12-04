@@ -3,6 +3,7 @@ require 'nbayes'
 
 require 'SpotlightImportingWordExtractor.rb'
 
+# Takes care of storing classifiers and training classifiers by name
 class Classifier
 
   def initialize(name)
@@ -14,11 +15,11 @@ class Classifier
     words = SpotlightImportingWordExtractor.new(file).extractedWords
 
     nbayes = NBayes::Base.new
-    if File.exists?(bayesfilename)
-      nbayes = NBayes::Base.from(bayesfilename)
+    if File.exists?(@bayesfilename)
+      nbayes = NBayes::Base.from(@bayesfilename)
     end
     nbayes.train(words.split(' '),documentType)
-    nbayes.dump(bayesfilename)
+    nbayes.dump(@bayesfilename)
   end
 
   def classify(file)
