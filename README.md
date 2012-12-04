@@ -129,3 +129,5 @@ I've written this from the perspective of someone that has been slinging Java (s
 exhibit some smell of Java and not be quite idiomatic Ruby.  I will have missed tricks as it is the first Ruby code
 I've written outside of puppet configuration.  I didn't get into rspec/rake/rdoc.  I was exploring and playing.  I may add rspec tests later and a rake script to coordinate it all but I was playing and didn't feel like it.
 
+I know it works on my own setup with a Fujitsu Scanscnap S1500M on a Macbook Pro or an iMac, using RBENV to get me an up to date version of Ruby.  It won't work if you aren't on OSX, it may not work if you have funny spotlight settings, I don't really know.  If you run into problems let me know.
+
